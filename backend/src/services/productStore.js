@@ -70,6 +70,22 @@ export class ProductStore {
     return product;
   }
 
+  async delete(id) {
+    const products = await this.readProducts();
+    const product = products.find((item) => item.id === id);
+    if (!product) {
+      const error = new Error("商品不存在");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await this.writeProducts(products.filter((item) => item.id !== id));
+    await this.removePublicFile(product.coverUrl);
+    await this.removePublicFile(product.modelUrl);
+
+    return product;
+  }
+
   async readProducts() {
     await fs.mkdir(path.dirname(this.dataPath), { recursive: true });
 
@@ -101,6 +117,20 @@ export class ProductStore {
     await fs.rename(file.path, outputPath);
 
     return `/static/${folder}/${fileName}`;
+  }
+
+  async removePublicFile(publicPath) {
+    if (!publicPath || !publicPath.startsWith("/static/")) {
+      return;
+    }
+
+    const relativePath = publicPath.replace("/static/", "");
+    const filePath = path.resolve(this.publicDir, relativePath);
+    if (!filePath.startsWith(this.publicDir)) {
+      return;
+    }
+
+    await fs.rm(filePath, { force: true });
   }
 }
 

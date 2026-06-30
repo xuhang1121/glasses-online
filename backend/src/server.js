@@ -3,6 +3,7 @@ import express from "express";
 import multer from "multer";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { renderAdminPage } from "./adminPage.js";
 import { buildFaceMeasurement } from "./services/faceMeasurement.js";
 import { buildFitAdvice } from "./services/fitAdvisor.js";
 import { ProductStore } from "./services/productStore.js";
@@ -48,6 +49,7 @@ app.get("/", (_req, res) => {
         <p>这个地址是后端服务，不是网页商城首页。小程序请用微信开发者工具打开 <code>miniprogram</code> 目录。</p>
         <p>可测试接口：</p>
         <ul>
+          <li><a href="/admin">/admin 后台管理</a></li>
           <li><a href="/api/health">/api/health</a></li>
           <li><a href="/api/products">/api/products</a></li>
         </ul>
@@ -58,6 +60,10 @@ app.get("/", (_req, res) => {
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "peijing-api" });
+});
+
+app.get("/admin", (_req, res) => {
+  res.type("html").send(renderAdminPage());
 });
 
 app.get("/api/products", async (_req, res, next) => {
@@ -107,6 +113,15 @@ app.get("/api/admin/products", async (_req, res, next) => {
   try {
     const products = await productStore.list();
     res.json({ items: products });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/admin/products/:id", async (req, res, next) => {
+  try {
+    const product = await productStore.delete(req.params.id);
+    res.json({ item: product });
   } catch (error) {
     next(error);
   }
