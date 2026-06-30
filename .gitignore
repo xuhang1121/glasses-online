@@ -1,0 +1,8 @@
+backend/node_modules/
+backend/server*.log
+backend/uploads/*
+backend/public/generated/*
+!backend/uploads/.gitkeep
+!backend/public/generated/.gitkeep
+project.private.config.json
+miniprogram/project.private.config.json

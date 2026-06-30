@@ -1,0 +1,100 @@
+.shop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12rpx 0 24rpx;
+}
+
+.eyebrow {
+  color: #667085;
+  font-size: 24rpx;
+}
+
+.title {
+  width: 520rpx;
+  font-size: 42rpx;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-top: 8rpx;
+}
+
+.badge {
+  min-width: 88rpx;
+  height: 44rpx;
+  border-radius: 8rpx;
+  background: #e6f4ee;
+  color: #087443;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.empty {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #667085;
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.product-card {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+  border: 1rpx solid #eaecf0;
+}
+
+.product-cover {
+  width: 208rpx;
+  height: 168rpx;
+  flex: 0 0 208rpx;
+  background: #f9fafb;
+  border-radius: 8rpx;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-name {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.product-meta {
+  margin-top: 8rpx;
+  color: #667085;
+  font-size: 24rpx;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 14rpx;
+}
+
+.tag {
+  padding: 6rpx 12rpx;
+  border-radius: 6rpx;
+  background: #eef4ff;
+  color: #3538cd;
+  font-size: 22rpx;
+}
+
+.price {
+  margin-top: 16rpx;
+  color: #b42318;
+  font-size: 32rpx;
+  font-weight: 800;
+}
+

@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/ar-tryon/ar-tryon",
+    "pages/tryon/tryon",
+    "pages/cart/cart"
+  ],
+  "window": {
+    "navigationBarTitleText": "配镜网",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f7fb"
+  },
+  "tabBar": {
+    "color": "#667085",
+    "selectedColor": "#111827",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "商城"
+      },
+      {
+        "pagePath": "pages/cart/cart",
+        "text": "购物车"
+      }
+    ]
+  },
+  "permission": {
+    "scope.camera": {
+      "desc": "用于拍摄正脸照片，生成镜架试戴和宽度测量结果"
+    }
+  },
+  "style": "v2"
+}

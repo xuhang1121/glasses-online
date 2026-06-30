@@ -1,0 +1,294 @@
+.product-strip {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  border: 1rpx solid #eaecf0;
+}
+
+.product-strip image {
+  width: 160rpx;
+  height: 108rpx;
+  background: #f9fafb;
+  border-radius: 8rpx;
+}
+
+.strip-name {
+  font-size: 30rpx;
+  font-weight: 800;
+  margin-bottom: 8rpx;
+}
+
+.upload-box {
+  height: 520rpx;
+  border-radius: 8rpx;
+  border: 1rpx dashed #98a2b3;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.capture-actions {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+
+.camera-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.camera-view {
+  width: 100%;
+  height: 760rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background: #111827;
+}
+
+.camera-mask {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.face-guide {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 13%;
+  bottom: 11%;
+  border: 4rpx solid rgba(255, 255, 255, 0.95);
+  border-radius: 50% 50% 42% 42%;
+  box-sizing: border-box;
+}
+
+.guide-line {
+  position: absolute;
+  top: 20%;
+  bottom: 24%;
+  width: 4rpx;
+  background: #12b76a;
+}
+
+.guide-line.left {
+  left: 9%;
+}
+
+.guide-line.right {
+  right: 9%;
+}
+
+.eye-line {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 42%;
+  border-top: 2rpx dashed rgba(255, 255, 255, 0.9);
+}
+
+.guide-label {
+  position: absolute;
+  left: 50%;
+  bottom: -64rpx;
+  transform: translateX(-50%);
+  width: 320rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  border-radius: 8rpx;
+  background: rgba(17, 24, 39, 0.72);
+  color: #ffffff;
+  font-size: 24rpx;
+}
+
+.camera-tools {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 16rpx;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.upload-placeholder {
+  text-align: center;
+}
+
+.upload-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  margin-bottom: 10rpx;
+}
+
+.form-panel {
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.field {
+  padding: 18rpx 20rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  border: 1rpx solid #eaecf0;
+}
+
+.label {
+  color: #667085;
+  font-size: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+input {
+  height: 52rpx;
+  font-size: 30rpx;
+}
+
+.submit {
+  margin-top: 24rpx;
+}
+
+.measure-note {
+  margin-top: 14rpx;
+  color: #667085;
+  font-size: 24rpx;
+}
+
+.three-d-panel {
+  margin-top: 18rpx;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eaecf0;
+  background: #ffffff;
+}
+
+.three-d-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18rpx;
+  margin-bottom: 12rpx;
+}
+
+.three-d-title {
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.yaw-pill {
+  min-width: 116rpx;
+  height: 48rpx;
+  padding: 0 14rpx;
+  border-radius: 8rpx;
+  background: #f2f4f7;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.yaw-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12rpx;
+}
+
+.mini {
+  height: 64rpx;
+  font-size: 24rpx;
+}
+
+.result {
+  margin-top: 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.result-image {
+  width: 100%;
+  border-radius: 8rpx;
+  background: #ffffff;
+}
+
+.advice {
+  padding: 22rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #d0d5dd;
+  background: #ffffff;
+}
+
+.advice.good {
+  border-color: #abefc6;
+  background: #ecfdf3;
+}
+
+.advice.wide,
+.advice.narrow {
+  border-color: #fedf89;
+  background: #fffaeb;
+}
+
+.advice-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.advice-desc {
+  margin-top: 10rpx;
+  color: #475467;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
+.advice-data {
+  margin-top: 12rpx;
+  color: #667085;
+  font-size: 24rpx;
+}
+
+.measurement-card {
+  padding: 22rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eaecf0;
+  background: #ffffff;
+}
+
+.measurement-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18rpx;
+  min-height: 44rpx;
+  align-items: center;
+}
+
+.measurement-label {
+  color: #667085;
+  font-size: 24rpx;
+}
+
+.measurement-value {
+  color: #111827;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.measurement-note {
+  margin-top: 12rpx;
+  color: #475467;
+  font-size: 24rpx;
+  line-height: 1.5;
+}

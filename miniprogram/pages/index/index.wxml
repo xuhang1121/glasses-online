@@ -1,0 +1,32 @@
+<view class="page">
+  <view class="shop-head">
+    <view>
+      <view class="eyebrow">眼镜商城</view>
+      <view class="title">选择镜架，上传照片试戴</view>
+    </view>
+    <view class="badge">MVP</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载商品中...</view>
+
+  <view wx:else class="product-list">
+    <view
+      wx:for="{{products}}"
+      wx:key="id"
+      class="product-card"
+      bindtap="openDetail"
+      data-id="{{item.id}}"
+    >
+      <image class="product-cover" src="{{item.fullCoverUrl}}" mode="aspectFit" />
+      <view class="product-info">
+        <view class="product-name">{{item.name}}</view>
+        <view class="product-meta">{{item.material}} · {{item.color}} · {{item.frameWidthMm}}mm</view>
+        <view class="tags">
+          <text wx:for="{{item.tags}}" wx:key="*this" class="tag">{{item}}</text>
+        </view>
+        <view class="price">{{item.priceText}}</view>
+      </view>
+    </view>
+  </view>
+</view>
+

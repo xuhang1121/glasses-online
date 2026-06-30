@@ -1,0 +1,116 @@
+<view class="page" wx:if="{{product}}">
+  <view class="product-strip">
+    <image src="{{product.fullCoverUrl}}" mode="aspectFit" />
+    <view>
+      <view class="strip-name">{{product.name}}</view>
+      <view class="muted">镜架宽度 {{product.frameWidthMm}}mm</view>
+    </view>
+  </view>
+
+  <view class="section-title">拍照测量</view>
+  <view class="capture-actions">
+    <button class="primary-button" bindtap="openCamera">框内拍照测量</button>
+    <button class="ghost-button" bindtap="choosePhoto">相册上传</button>
+  </view>
+
+  <view wx:if="{{cameraOpen}}" class="camera-panel">
+    <camera
+      class="camera-view"
+      mode="normal"
+      device-position="front"
+      flash="off"
+      bindinitdone="onCameraReady"
+      binderror="onCameraError"
+    >
+      <cover-view class="camera-mask">
+        <cover-view class="face-guide">
+          <cover-view class="guide-line left"></cover-view>
+          <cover-view class="guide-line right"></cover-view>
+          <cover-view class="eye-line"></cover-view>
+          <cover-view class="guide-label">脸颊对齐两侧竖线</cover-view>
+        </cover-view>
+      </cover-view>
+    </camera>
+
+    <view class="camera-tools">
+      <button class="ghost-button" bindtap="closeCamera">取消</button>
+      <button class="primary-button" bindtap="takeGuidePhoto">拍照并测量</button>
+    </view>
+  </view>
+
+  <view wx:else class="upload-box" bindtap="choosePhoto">
+    <image wx:if="{{photoPath}}" class="photo-preview" src="{{photoPath}}" mode="aspectFit" />
+    <view wx:else class="upload-placeholder">
+      <view class="upload-title">选择照片或拍照</view>
+      <view class="muted">建议使用光线充足的正脸照片</view>
+    </view>
+  </view>
+
+  <view class="form-panel">
+    <view class="field">
+      <view class="label">测量脸宽 mm</view>
+      <input type="number" value="{{faceWidthMm}}" bindinput="onFaceWidthInput" placeholder="如 145" />
+    </view>
+    <view class="field">
+      <view class="label">瞳距 PD mm，可选</view>
+      <input type="number" value="{{pupilDistanceMm}}" bindinput="onPdInput" placeholder="如 63" />
+    </view>
+  </view>
+
+  <view class="measure-note">{{measurementText}}</view>
+
+  <view class="three-d-panel">
+    <view class="three-d-head">
+      <view>
+        <view class="three-d-title">3D 试戴角度</view>
+        <view class="muted">根据照片头部朝向调整镜架透视</view>
+      </view>
+      <view class="yaw-pill">{{headYawText}}</view>
+    </view>
+    <slider
+      min="-25"
+      max="25"
+      step="1"
+      value="{{headYawDeg}}"
+      activeColor="#111827"
+      backgroundColor="#d0d5dd"
+      bindchange="onHeadYawChange"
+      bindchanging="onHeadYawChange"
+    />
+    <view class="yaw-buttons">
+      <button class="ghost-button mini" data-value="-18" bindtap="setHeadYaw">左脸</button>
+      <button class="ghost-button mini" data-value="0" bindtap="setHeadYaw">正面</button>
+      <button class="ghost-button mini" data-value="18" bindtap="setHeadYaw">右脸</button>
+    </view>
+  </view>
+
+  <button class="primary-button submit" loading="{{uploading}}" bindtap="submitTryOn">
+    测量并生成试戴效果
+  </button>
+
+  <view wx:if="{{result}}" class="result">
+    <image class="result-image" src="{{result.imageUrl}}" mode="widthFix" />
+    <view class="advice {{result.fit.level}}">
+      <view class="advice-title">{{result.fit.title}}</view>
+      <view class="advice-desc">{{result.fit.description}}</view>
+      <view class="advice-data">
+        镜架 {{result.fit.frameWidthMm}}mm · 脸宽 {{result.fit.faceWidthMm}}mm · 差值 {{result.fit.differenceMm}}mm
+      </view>
+      <view class="advice-data">
+        3D 角度 {{result.render.headYawDeg}}° · {{result.render.mode}}
+      </view>
+    </view>
+    <view class="measurement-card">
+      <view class="measurement-row">
+        <text class="measurement-label">测量方式</text>
+        <text class="measurement-value">{{result.measurement.sourceText}}</text>
+      </view>
+      <view class="measurement-row">
+        <text class="measurement-label">可信度</text>
+        <text class="measurement-value">{{result.measurement.confidenceText}}</text>
+      </view>
+      <view class="measurement-note">{{result.measurement.note}}</view>
+    </view>
+    <button class="ghost-button" bindtap="addCart">加入购物车</button>
+  </view>
+</view>

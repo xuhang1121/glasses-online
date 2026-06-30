@@ -1,0 +1,66 @@
+<view class="ar-wrap">
+  <xr-scene
+    class="xr-scene"
+    ar-system="modes:Face;camera:Front;pose3d:true;"
+    bind:ready="handleReady"
+    bind:ar-ready="handleARReady"
+  >
+    <xr-assets bind:progress="handleAssetsProgress" bind:loaded="handleAssetsLoaded">
+      <xr-asset-load
+        type="gltf"
+        asset-id="reference-face"
+        src="https://mmbizwxaminiprogram-1258344707.cos.ap-guangzhou.myqcloud.com/xr-frame/demo/face.glb"
+      />
+      <xr-asset-load
+        type="gltf"
+        asset-id="glasses-model"
+        src="{{modelUrl}}"
+      />
+    </xr-assets>
+
+    <xr-env env-data="xr-frame-team-workspace-day" />
+
+    <xr-node wx:if="{{arReady}}">
+      <xr-ar-tracker id="face-tracker" mode="Face">
+        <xr-gltf
+          id="reference-face"
+          node-id="reference-face"
+          visible="{{loaded}}"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="1 1 1"
+          model="reference-face"
+          never-cull
+        />
+        <xr-gltf
+          id="glasses"
+          node-id="glasses"
+          visible="{{loaded}}"
+          position="{{modelPosition}}"
+          rotation="{{modelRotation}}"
+          scale="{{modelScale}}"
+          model="glasses-model"
+          never-cull
+        />
+      </xr-ar-tracker>
+
+      <xr-camera
+        id="camera"
+        node-id="camera"
+        clear-color="0.925 0.925 0.925 1"
+        background="ar"
+        is-ar-camera
+        near="0.01"
+      />
+    </xr-node>
+
+    <xr-node node-id="lights">
+      <xr-light type="ambient" color="1 1 1" intensity="0.35" />
+      <xr-light type="directional" rotation="180 0 0" color="1 1 1" intensity="1.4" />
+    </xr-node>
+  </xr-scene>
+
+  <view class="ar-status {{faceVisibleClass}}">
+    {{statusText}}
+  </view>
+</view>
