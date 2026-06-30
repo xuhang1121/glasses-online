@@ -63,4 +63,11 @@
   <view class="ar-status {{faceVisibleClass}}">
     {{statusText}}
   </view>
+
+  <view class="face-guide {{faceVisibleClass}}">
+    <view class="guide-line left"></view>
+    <view class="guide-line right"></view>
+    <view class="eye-line"></view>
+    <view class="guide-copy">{{faceVisible ? '实时 3D 试戴中' : '把脸放进框内'}}</view>
+  </view>
 </view>

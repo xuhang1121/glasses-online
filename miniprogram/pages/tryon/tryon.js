@@ -15,6 +15,9 @@ Page({
     renderMode: "3d",
     headYawDeg: 0,
     headYawText: "正面",
+    frameTopPercent: 39,
+    faceWidthPixelRatio: 0.62,
+    frameOffsetXPercent: 0,
     uploading: false,
     result: null
   },
@@ -29,29 +32,13 @@ Page({
       this.setData({
         product: {
           ...res.item,
-          fullCoverUrl: `${API_BASE_URL}${res.item.coverUrl}`
+          fullCoverUrl: `${API_BASE_URL}${res.item.frontImageUrl || res.item.coverUrl}`,
+          hasTryOnAsset: Boolean(res.item.tryOnAssetUrl && res.item.tryOnAssetUrl.includes("/tryon-assets/"))
         }
       });
     } catch (error) {
       wx.showToast({ title: error.message, icon: "none" });
     }
-  },
-
-  choosePhoto() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ["image"],
-      sourceType: ["album"],
-      success: (res) => {
-        this.setData({
-          photoPath: res.tempFiles[0].tempFilePath,
-          cameraOpen: false,
-          measurementMode: "manual",
-          measurementText: "相册照片，手动输入脸宽",
-          result: null
-        });
-      }
-    });
   },
 
   openCamera() {
@@ -158,6 +145,26 @@ Page({
     });
   },
 
+  onFrameTopChange(event) {
+    this.setData({ frameTopPercent: Number(event.detail.value) });
+  },
+
+  onFrameWidthChange(event) {
+    this.setData({ faceWidthPixelRatio: Number(event.detail.value) / 100 });
+  },
+
+  onFrameOffsetXChange(event) {
+    this.setData({ frameOffsetXPercent: Number(event.detail.value) });
+  },
+
+  resetFrameAdjust() {
+    this.setData({
+      frameTopPercent: 39,
+      faceWidthPixelRatio: 0.62,
+      frameOffsetXPercent: 0
+    });
+  },
+
   getHeadYawText(value) {
     if (value <= -12) {
       return "向左侧脸";
@@ -187,7 +194,11 @@ Page({
         measurementMode: this.data.measurementMode,
         faceWidthEdited: this.data.faceWidthEdited,
         renderMode: this.data.renderMode,
-        headYawDeg: this.data.headYawDeg
+        headYawDeg: this.data.headYawDeg,
+        faceWidthPixelRatio: this.data.faceWidthPixelRatio,
+        frameTopPercent: this.data.frameTopPercent,
+        frameWidthPercent: 58,
+        frameOffsetXPercent: this.data.frameOffsetXPercent
       });
 
       this.setData({ result, uploading: false });
@@ -200,5 +211,9 @@ Page({
   addCart() {
     getApp().addToCart(this.data.product);
     wx.showToast({ title: "已加入购物车", icon: "success" });
+  },
+
+  openArTryOn() {
+    wx.redirectTo({ url: `/pages/ar-tryon/ar-tryon?id=${this.data.product.id}` });
   }
 });

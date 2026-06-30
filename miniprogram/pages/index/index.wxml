@@ -2,12 +2,25 @@
   <view class="shop-head">
     <view>
       <view class="eyebrow">眼镜商城</view>
-      <view class="title">选择镜架，上传照片试戴</view>
+      <view class="title">选择镜框，支持线上试戴</view>
     </view>
     <view class="badge">MVP</view>
   </view>
 
+  <view class="debug-api">API：{{apiBaseUrl}}</view>
+
   <view wx:if="{{loading}}" class="empty">加载商品中...</view>
+
+  <view wx:elif="{{errorText}}" class="state-box">
+    <view class="state-title">商品加载失败</view>
+    <view class="state-desc">{{errorText}}</view>
+    <button class="ghost-button retry-button" bindtap="retryLoad">重试</button>
+  </view>
+
+  <view wx:elif="{{!products.length}}" class="state-box">
+    <view class="state-title">暂无商品</view>
+    <view class="state-desc">请先在后台新增镜架商品</view>
+  </view>
 
   <view wx:else class="product-list">
     <view
@@ -29,4 +42,3 @@
     </view>
   </view>
 </view>
-

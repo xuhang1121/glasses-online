@@ -27,7 +27,7 @@ Component({
     arReady: false,
     faceVisible: false,
     faceVisibleClass: "",
-    statusText: "正在启动 AR 相机"
+    statusText: "正在启动 3D 试戴"
   },
 
   methods: {
@@ -72,7 +72,7 @@ Component({
         this.setData({
           faceVisible,
           faceVisibleClass: faceVisible ? "active" : "",
-          statusText: faceVisible ? "AR 试戴中" : "请把脸移入画面"
+          statusText: faceVisible ? "3D 试戴中" : "请把脸放进框内"
         });
       }
     },

@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "AR 试戴",
+  "navigationBarTitleText": "3D 试戴",
   "disableScroll": true,
   "usingComponents": {
     "ar-glasses": "../../components/ar-glasses/index"

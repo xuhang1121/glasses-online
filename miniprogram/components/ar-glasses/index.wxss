@@ -30,3 +30,60 @@
 .ar-status.active {
   background: rgba(8, 116, 67, 0.82);
 }
+
+.face-guide {
+  position: fixed;
+  left: 16vw;
+  right: 16vw;
+  top: 15vh;
+  height: 56vh;
+  border: 4rpx solid rgba(255, 255, 255, 0.95);
+  border-radius: 50% 50% 42% 42%;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.face-guide.active {
+  opacity: 0.38;
+}
+
+.guide-line {
+  position: absolute;
+  top: 20%;
+  bottom: 24%;
+  width: 4rpx;
+  background: #12b76a;
+}
+
+.guide-line.left {
+  left: 9%;
+}
+
+.guide-line.right {
+  right: 9%;
+}
+
+.eye-line {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 42%;
+  border-top: 2rpx dashed rgba(255, 255, 255, 0.9);
+}
+
+.guide-copy {
+  position: absolute;
+  left: 50%;
+  bottom: -64rpx;
+  transform: translateX(-50%);
+  min-width: 260rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  border-radius: 8rpx;
+  background: rgba(17, 24, 39, 0.72);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 700;
+}

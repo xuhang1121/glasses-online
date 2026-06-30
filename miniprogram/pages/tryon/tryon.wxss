@@ -21,6 +21,17 @@
   margin-bottom: 8rpx;
 }
 
+.asset-warning {
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #fedf89;
+  background: #fffaeb;
+  color: #93370d;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
 .upload-box {
   height: 520rpx;
   border-radius: 8rpx;
@@ -33,9 +44,7 @@
 }
 
 .capture-actions {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 16rpx;
+  display: block;
   margin-bottom: 18rpx;
 }
 
@@ -171,6 +180,37 @@ input {
   border-radius: 8rpx;
   border: 1rpx solid #eaecf0;
   background: #ffffff;
+}
+
+.adjust-panel {
+  margin-top: 18rpx;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eaecf0;
+  background: #ffffff;
+}
+
+.adjust-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18rpx;
+  align-items: flex-start;
+  margin-bottom: 12rpx;
+}
+
+.adjust-row {
+  margin-top: 12rpx;
+}
+
+.adjust-label {
+  color: #475467;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.reset-button {
+  width: 112rpx;
+  flex: 0 0 112rpx;
 }
 
 .three-d-head {

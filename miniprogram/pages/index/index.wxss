@@ -31,10 +31,45 @@
   font-weight: 700;
 }
 
+.debug-api {
+  margin-bottom: 18rpx;
+  padding: 10rpx 12rpx;
+  border-radius: 6rpx;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 20rpx;
+  word-break: break-all;
+}
+
 .empty {
   padding: 80rpx 0;
   text-align: center;
   color: #667085;
+}
+
+.state-box {
+  margin-top: 40rpx;
+  padding: 28rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #eaecf0;
+  background: #ffffff;
+}
+
+.state-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.state-desc {
+  margin-top: 12rpx;
+  color: #667085;
+  font-size: 24rpx;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.retry-button {
+  margin-top: 20rpx;
 }
 
 .product-list {
@@ -97,4 +132,3 @@
   font-size: 32rpx;
   font-weight: 800;
 }
-

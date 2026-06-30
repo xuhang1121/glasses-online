@@ -93,6 +93,9 @@ app.post(
   "/api/admin/products",
   upload.fields([
     { name: "cover", maxCount: 1 },
+    { name: "frontImage", maxCount: 1 },
+    { name: "sideImage", maxCount: 1 },
+    { name: "tryOnAsset", maxCount: 1 },
     { name: "model", maxCount: 1 }
   ]),
   async (req, res, next) => {
@@ -156,21 +159,32 @@ app.post("/api/try-on", upload.single("photo"), async (req, res, next) => {
 
     const headYawDeg = clampNumber(req.body.headYawDeg, -25, 25, 0);
     const renderMode = req.body.renderMode === "flat" ? "flat" : "3d";
+    const frameTopPercent = clampNumber(req.body.frameTopPercent, 18, 62, 39);
+    const frameWidthPercent = clampNumber(req.body.frameWidthPercent, 35, 85, 58);
+    const frameOffsetXPercent = clampNumber(req.body.frameOffsetXPercent, -20, 20, 0);
     const image = await composeTryOnImage({
       sourcePath: req.file.path,
       product,
       outputDir: path.join(publicDir, "generated"),
+      faceWidthMm: measurement.faceWidthMm,
+      faceWidthPixelRatio: req.body.faceWidthPixelRatio,
       renderMode,
-      headYawDeg
+      headYawDeg,
+      frameTopPercent,
+      frameWidthPercent,
+      frameOffsetXPercent
     });
 
     res.json({
       product,
       fit,
-      imageUrl: `${req.protocol}://${req.get("host")}${image.publicPath}`,
+      imageUrl: `${getPublicProtocol(req)}://${req.get("host")}${image.publicPath}`,
       render: {
         mode: renderMode,
-        headYawDeg
+        headYawDeg,
+        frameTopPercent,
+        frameWidthPercent,
+        frameOffsetXPercent
       },
       measurement,
       calibration: {
@@ -204,4 +218,13 @@ function clampNumber(value, min, max, fallback) {
   }
 
   return Math.min(max, Math.max(min, number));
+}
+
+function getPublicProtocol(req) {
+  const forwardedProto = req.get("x-forwarded-proto");
+  if (forwardedProto) {
+    return forwardedProto.split(",")[0].trim();
+  }
+
+  return req.protocol;
 }

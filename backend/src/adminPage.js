@@ -85,7 +85,26 @@
                 <div class="field"><label for="material">材质</label><input id="material" name="material" placeholder="钛 / TR90" /></div>
                 <div class="field"><label for="tags">标签</label><input id="tags" name="tags" placeholder="轻量,商务,大脸友好" /></div>
               </div>
-              <div class="field"><label for="cover">商品封面</label><input id="cover" name="cover" type="file" accept="image/*,.svg" required /></div>
+              <div class="field">
+                <label for="cover">参数/封面图</label>
+                <input id="cover" name="cover" type="file" accept="image/*,.svg" required />
+                <div class="hint">用于商品列表和详情展示，可以是带参数文字的商品图。</div>
+              </div>
+              <div class="field">
+                <label for="frontImage">正面商品图</label>
+                <input id="frontImage" name="frontImage" type="file" accept="image/*,.svg" />
+                <div class="hint">建议上传白底正面图。未上传透明试戴图时，后台会用这张图自动生成在线试戴素材。</div>
+              </div>
+              <div class="field">
+                <label for="sideImage">侧面商品图</label>
+                <input id="sideImage" name="sideImage" type="file" accept="image/*,.svg" />
+                <div class="hint">用于详情展示和后续侧脸/3D效果参考。</div>
+              </div>
+              <div class="field">
+                <label for="tryOnAsset">在线试戴透明镜框图</label>
+                <input id="tryOnAsset" name="tryOnAsset" type="file" accept="image/png,image/webp,.svg" />
+                <div class="hint">可选。上传专业透明 PNG/SVG 时优先使用；不上传则从正面商品图自动抠出试戴素材。</div>
+              </div>
               <div class="field">
                 <label for="model">3D 模型文件，可选</label>
                 <input id="model" name="model" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" />
@@ -104,7 +123,7 @@
           <section>
             <div class="toolbar"><h2>商品列表</h2><span id="count" class="count"></span></div>
             <table>
-              <thead><tr><th>封面</th><th>商品</th><th>价格</th><th>尺寸</th><th>AR 模型</th><th>标签</th><th>操作</th></tr></thead>
+              <thead><tr><th>封面</th><th>商品</th><th>价格</th><th>尺寸</th><th>商品图</th><th>试戴素材</th><th>AR 模型</th><th>标签</th><th>操作</th></tr></thead>
               <tbody id="product-list"></tbody>
             </table>
           </section>
@@ -166,6 +185,8 @@
           '<td><strong>' + escapeHtml(product.name) + '</strong><br><span class="muted">' + escapeHtml(product.id) + '</span></td>' +
           '<td>¥' + (product.price / 100).toFixed(2) + '</td>' +
           '<td>' + product.frameWidthMm + 'mm<br><span class="muted">' + product.lensWidthMm + '-' + product.bridgeWidthMm + '-' + product.templeLengthMm + '</span></td>' +
+          '<td class="model-cell">正面' + (product.frontImageUrl ? '已配置' : '未配置') + '<br>侧面' + (product.sideImageUrl ? '已配置' : '未配置') + '</td>' +
+          '<td class="model-cell">' + (product.tryOnAssetUrl ? '已配置' : '未配置') + '</td>' +
           '<td class="model-cell">' + modelSource + '<br><span>' + escapeHtml(product.modelScale || "1 1 1") + '</span></td>' +
           '<td>' + tags + '</td>' +
           '<td><button class="danger" data-delete="' + escapeHtml(product.id) + '">删除</button></td>' +

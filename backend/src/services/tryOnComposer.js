@@ -6,8 +6,13 @@ export async function composeTryOnImage({
   sourcePath,
   product,
   outputDir,
+  faceWidthMm,
+  faceWidthPixelRatio,
   renderMode = "3d",
-  headYawDeg = 0
+  headYawDeg = 0,
+  frameTopPercent = 39,
+  frameWidthPercent = 58,
+  frameOffsetXPercent = 0
 }) {
   await fs.mkdir(outputDir, { recursive: true });
 
@@ -18,17 +23,40 @@ export async function composeTryOnImage({
   const width = Math.min(sourceWidth, 1200);
   const height = Math.round(sourceHeight * (width / sourceWidth));
 
-  const frameWidth = Math.round(width * 0.58);
-  const frameHeight = Math.round(frameWidth * 0.28);
-  const left = Math.round((width - frameWidth) / 2);
-  const top = Math.round(height * 0.34);
-  const frameSvg = buildFrameSvg({
-    width: frameWidth,
-    height: frameHeight,
-    color: product.color,
-    renderMode,
-    headYawDeg
+  const measuredFaceWidthPx = getMeasuredFaceWidthPx({
+    imageWidth: width,
+    faceWidthPixelRatio
   });
+  const mmScaledFrameWidth = getMmScaledFrameWidth({
+    measuredFaceWidthPx,
+    faceWidthMm,
+    frameWidthMm: product.frameWidthMm
+  });
+  const frameWidthRatio = clamp(Number(frameWidthPercent) || 58, 35, 85) / 100;
+  const measuredEyeLinePx = height * 0.45;
+  const frameTopRatio = clamp(Number(frameTopPercent) || 39, 18, 62) / 100;
+  const frameOffsetXRatio = clamp(Number(frameOffsetXPercent) || 0, -20, 20) / 100;
+  const frameWidth = mmScaledFrameWidth || Math.round(width * frameWidthRatio);
+  const frameHeight = Math.round(frameWidth * 0.28);
+  const left = Math.round((width - frameWidth) / 2 + width * frameOffsetXRatio);
+  const mmScaledTop = mmScaledFrameWidth
+    ? Math.round(measuredEyeLinePx - frameHeight * 0.48 + height * ((frameTopRatio - 0.39) * 0.5))
+    : Math.round(height * frameTopRatio);
+  const top = clamp(mmScaledTop, 0, Math.max(0, height - frameHeight));
+  const frameInput = product.tryOnAssetUrl?.startsWith("/static/tryon-assets/")
+    ? await buildProductFrameInput({
+      product,
+      publicDir: path.resolve(outputDir, ".."),
+      frameWidth,
+      frameHeight
+    })
+    : Buffer.from(buildFrameSvg({
+      width: frameWidth,
+      height: frameHeight,
+      color: product.color,
+      renderMode,
+      headYawDeg
+    }));
 
   const fileName = `tryon-${Date.now()}-${Math.round(Math.random() * 10000)}.png`;
   const outputPath = path.join(outputDir, fileName);
@@ -37,7 +65,7 @@ export async function composeTryOnImage({
     .resize({ width, withoutEnlargement: true })
     .composite([
       {
-        input: Buffer.from(frameSvg),
+        input: frameInput,
         left,
         top
       }
@@ -49,6 +77,58 @@ export async function composeTryOnImage({
     outputPath,
     publicPath: `/static/generated/${fileName}`
   };
+}
+
+async function buildProductFrameInput({ product, publicDir, frameWidth, frameHeight }) {
+  if (!product.tryOnAssetUrl?.startsWith("/static/tryon-assets/")) {
+    return Buffer.from(buildFrameSvg({
+      width: frameWidth,
+      height: frameHeight,
+      color: product.color,
+      renderMode: "3d",
+      headYawDeg: 0
+    }));
+  }
+
+  const relativePath = product.tryOnAssetUrl.replace("/static/", "");
+  const assetPath = path.resolve(publicDir, relativePath);
+  if (!assetPath.startsWith(publicDir)) {
+    throw new Error("试戴素材路径无效");
+  }
+
+  return sharp(assetPath)
+    .resize({
+      width: frameWidth,
+      height: frameHeight,
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 }
+    })
+    .png()
+    .toBuffer();
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getMeasuredFaceWidthPx({ imageWidth, faceWidthPixelRatio }) {
+  const ratio = Number(faceWidthPixelRatio);
+  if (!Number.isFinite(ratio) || ratio <= 0) {
+    return null;
+  }
+
+  return imageWidth * clamp(ratio, 0.35, 0.9);
+}
+
+function getMmScaledFrameWidth({ measuredFaceWidthPx, faceWidthMm, frameWidthMm }) {
+  const faceMm = Number(faceWidthMm);
+  const frameMm = Number(frameWidthMm);
+
+  if (!measuredFaceWidthPx || !Number.isFinite(faceMm) || !Number.isFinite(frameMm) || faceMm <= 0 || frameMm <= 0) {
+    return null;
+  }
+
+  return Math.round(clamp(measuredFaceWidthPx * (frameMm / faceMm), measuredFaceWidthPx * 0.75, measuredFaceWidthPx * 1.35));
 }
 
 function buildFrameSvg({ width, height, color, renderMode, headYawDeg }) {

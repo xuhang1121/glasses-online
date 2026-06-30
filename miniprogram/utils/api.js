@@ -26,7 +26,11 @@ export function uploadTryOn({
   measurementMode,
   faceWidthEdited,
   renderMode,
-  headYawDeg
+  headYawDeg,
+  faceWidthPixelRatio,
+  frameTopPercent,
+  frameWidthPercent,
+  frameOffsetXPercent
 }) {
   return new Promise((resolve, reject) => {
     wx.uploadFile({
@@ -40,7 +44,11 @@ export function uploadTryOn({
         measurementMode,
         faceWidthEdited,
         renderMode,
-        headYawDeg
+        headYawDeg,
+        faceWidthPixelRatio,
+        frameTopPercent,
+        frameWidthPercent,
+        frameOffsetXPercent
       },
       success: (res) => {
         try {

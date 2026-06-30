@@ -18,7 +18,8 @@ Page({
         product: {
           ...res.item,
           priceText: money(res.item.price),
-          fullCoverUrl: `${API_BASE_URL}${res.item.coverUrl}`
+          fullCoverUrl: `${API_BASE_URL}${res.item.coverUrl}`,
+          fullSideImageUrl: res.item.sideImageUrl ? `${API_BASE_URL}${res.item.sideImageUrl}` : ""
         },
         loading: false
       });

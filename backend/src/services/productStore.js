@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { products as seedProducts } from "../data/products.js";
+import { generateTryOnAssetFromCover } from "./tryOnAssetGenerator.js";
 
 const demoModelUrl = "https://mmbizwxaminiprogram-1258344707.cos.ap-guangzhou.myqcloud.com/xr-frame/demo/glasses.glb";
 
@@ -38,9 +39,27 @@ export class ProductStore {
     }
 
     const modelFile = firstFile(files.model);
+    const tryOnAssetFile = firstFile(files.tryOnAsset);
+    const frontImageFile = firstFile(files.frontImage);
+    const sideImageFile = firstFile(files.sideImage);
     const coverUrl = coverFile
       ? await this.movePublicFile(coverFile, "frames", id)
       : fields.coverUrl;
+    const frontImageUrl = frontImageFile
+      ? await this.movePublicFile(frontImageFile, "frames", `${id}-front`)
+      : fields.frontImageUrl || coverUrl;
+    const sideImageUrl = sideImageFile
+      ? await this.movePublicFile(sideImageFile, "frames", `${id}-side`)
+      : fields.sideImageUrl || null;
+    const tryOnAssetUrl = tryOnAssetFile
+      ? await this.movePublicFile(tryOnAssetFile, "tryon-assets", id)
+      : fields.tryOnAssetUrl || (frontImageUrl
+        ? await generateTryOnAssetFromCover({
+          coverPath: path.join(this.publicDir, frontImageUrl.replace("/static/", "")),
+          publicDir: this.publicDir,
+          productId: id
+        })
+        : null);
     const modelUrl = modelFile
       ? await this.movePublicFile(modelFile, "models", id)
       : fields.modelUrl || demoModelUrl;
@@ -56,7 +75,10 @@ export class ProductStore {
       color: fields.color || "未设置",
       material: fields.material || "未设置",
       coverUrl,
+      frontImageUrl,
+      sideImageUrl,
       frameAsset: path.basename(coverUrl),
+      tryOnAssetUrl,
       modelUrl,
       modelScale: fields.modelScale || "1 1 1",
       modelPosition: fields.modelPosition || "0 0 0",
@@ -81,6 +103,9 @@ export class ProductStore {
 
     await this.writeProducts(products.filter((item) => item.id !== id));
     await this.removePublicFile(product.coverUrl);
+    await this.removePublicFile(product.frontImageUrl);
+    await this.removePublicFile(product.sideImageUrl);
+    await this.removePublicFile(product.tryOnAssetUrl);
     await this.removePublicFile(product.modelUrl);
 
     return product;
