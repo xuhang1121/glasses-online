@@ -1,4 +1,17 @@
-export function buildFitAdvice({ frameWidthMm, faceWidthMm, pupilDistanceMm }) {
+export function buildFitAdvice({ frameWidthMm, faceWidthMm, pupilDistanceMm, isCalibrated = true }) {
+  if (!isCalibrated) {
+    return {
+      level: "uncalibrated",
+      title: "尺寸仅供参考",
+      description: "当前只按照片里的脸宽像素生成试戴图，未得到真实毫米脸宽；镜架毫米尺寸需要手动校准后再判断。",
+      differenceMm: null,
+      frameWidthMm,
+      faceWidthMm: null,
+      pupilDistanceMm,
+      pdWarning: false
+    };
+  }
+
   const difference = frameWidthMm - faceWidthMm;
   const absDifference = Math.abs(difference);
   const pdWarning = pupilDistanceMm && (pupilDistanceMm < 55 || pupilDistanceMm > 75);
@@ -32,4 +45,3 @@ export function buildFitAdvice({ frameWidthMm, faceWidthMm, pupilDistanceMm }) {
     pdWarning: Boolean(pdWarning)
   };
 }
-

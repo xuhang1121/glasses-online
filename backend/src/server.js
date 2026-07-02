@@ -143,10 +143,9 @@ app.post("/api/try-on", upload.single("photo"), async (req, res, next) => {
       return;
     }
 
-    const pupilDistanceMm = req.body.pupilDistanceMm ? Number(req.body.pupilDistanceMm) : null;
     const measurement = buildFaceMeasurement({
       faceWidthMm: req.body.faceWidthMm,
-      pupilDistanceMm,
+      pupilDistanceMm: null,
       measurementMode: req.body.measurementMode,
       faceWidthEdited: req.body.faceWidthEdited === "true"
     });
@@ -154,13 +153,13 @@ app.post("/api/try-on", upload.single("photo"), async (req, res, next) => {
     const fit = buildFitAdvice({
       frameWidthMm: product.frameWidthMm,
       faceWidthMm: measurement.faceWidthMm,
-      pupilDistanceMm
+      pupilDistanceMm: null,
+      isCalibrated: measurement.isCalibrated
     });
 
     const headYawDeg = clampNumber(req.body.headYawDeg, -25, 25, 0);
     const renderMode = req.body.renderMode === "flat" ? "flat" : "3d";
     const frameTopPercent = clampNumber(req.body.frameTopPercent, 18, 62, 39);
-    const frameWidthPercent = clampNumber(req.body.frameWidthPercent, 35, 85, 58);
     const frameOffsetXPercent = clampNumber(req.body.frameOffsetXPercent, -20, 20, 0);
     const image = await composeTryOnImage({
       sourcePath: req.file.path,
@@ -171,7 +170,6 @@ app.post("/api/try-on", upload.single("photo"), async (req, res, next) => {
       renderMode,
       headYawDeg,
       frameTopPercent,
-      frameWidthPercent,
       frameOffsetXPercent
     });
 
@@ -183,13 +181,16 @@ app.post("/api/try-on", upload.single("photo"), async (req, res, next) => {
         mode: renderMode,
         headYawDeg,
         frameTopPercent,
-        frameWidthPercent,
-        frameOffsetXPercent
+        frameOffsetXPercent,
+        ...image.render
       },
       measurement,
       calibration: {
         faceWidthMm: measurement.faceWidthMm,
-        pupilDistanceMm,
+        faceWidthText: measurement.faceWidthText,
+        estimatedFaceWidthMm: measurement.estimatedFaceWidthMm,
+        isCalibrated: measurement.isCalibrated,
+        pupilDistanceMm: null,
         mode: req.body.measurementMode || "manual-estimate"
       }
     });

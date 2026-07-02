@@ -11,9 +11,10 @@
     当前商品还没有上传“在线试戴透明镜框图”，生成图会使用占位素材。请在后台为该商品上传透明 PNG/SVG 镜框图。
   </view>
 
-  <view class="section-title">在线试戴</view>
+  <view class="section-title">选择镜框 支持线上试戴</view>
   <view class="capture-actions">
     <button class="primary-button" bindtap="openCamera">打开摄像机</button>
+    <view class="measure-note">拍照前请摘掉原眼镜，脸两侧对齐绿色竖线，眼睛对齐虚线。</view>
   </view>
 
   <view wx:if="{{cameraOpen}}" class="camera-panel">
@@ -45,18 +46,14 @@
     <image wx:if="{{photoPath}}" class="photo-preview" src="{{photoPath}}" mode="aspectFit" />
     <view wx:else class="upload-placeholder">
       <view class="upload-title">打开摄像机</view>
-      <view class="muted">脸放进框内后拍照生成试戴效果</view>
+      <view class="muted">脸放进框内后拍照生成在线试戴效果</view>
     </view>
   </view>
 
   <view class="form-panel">
     <view class="field">
-      <view class="label">测量脸宽 mm</view>
-      <input type="number" value="{{faceWidthMm}}" bindinput="onFaceWidthInput" placeholder="如 145" />
-    </view>
-    <view class="field">
-      <view class="label">瞳距 PD mm，可选</view>
-      <input type="number" value="{{pupilDistanceMm}}" bindinput="onPdInput" placeholder="如 63" />
+      <view class="label">手动校准脸宽 mm，可选</view>
+      <input type="number" value="{{faceWidthMm}}" bindinput="onFaceWidthInput" placeholder="不填则只按像素试戴" />
     </view>
   </view>
 
@@ -111,20 +108,6 @@
     </view>
 
     <view class="adjust-row">
-      <view class="adjust-label">大小 {{frameWidthPercent}}%</view>
-      <slider
-        min="35"
-        max="85"
-        step="1"
-        value="{{frameWidthPercent}}"
-        activeColor="#111827"
-        backgroundColor="#d0d5dd"
-        bindchange="onFrameWidthChange"
-        bindchanging="onFrameWidthChange"
-      />
-    </view>
-
-    <view class="adjust-row">
       <view class="adjust-label">左右 {{frameOffsetXPercent}}%</view>
       <slider
         min="-20"
@@ -149,13 +132,13 @@
       <view class="advice-title">{{result.fit.title}}</view>
       <view class="advice-desc">{{result.fit.description}}</view>
       <view class="advice-data">
-        镜架 {{result.fit.frameWidthMm}}mm · 脸宽 {{result.fit.faceWidthMm}}mm · 差值 {{result.fit.differenceMm}}mm
+        镜架 {{result.fit.frameWidthMm}}mm · 脸宽 {{result.measurement.faceWidthText}}
       </view>
       <view class="advice-data">
-        3D 角度 {{result.render.headYawDeg}}° · {{result.render.mode}}
+        位置 {{result.render.frameTopPercent}}% · 左右 {{result.render.frameOffsetXPercent}}%
       </view>
       <view class="advice-data">
-        位置 {{result.render.frameTopPercent}}% · 大小 {{result.render.frameWidthPercent}}% · 左右 {{result.render.frameOffsetXPercent}}%
+        像素比例 {{result.render.faceWidthPixelRatio}} · {{result.render.facePixelSource}}
       </view>
     </view>
     <view class="measurement-card">

@@ -2,6 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
+const TRY_ON_FRAME_TO_FACE_RATIO = 0.92;
+const DEFAULT_FACE_WIDTH_PIXEL_RATIO = 0.56;
+const DEFAULT_EYE_LINE_RATIO = 0.45;
+
 export async function composeTryOnImage({
   sourcePath,
   product,
@@ -22,50 +26,54 @@ export async function composeTryOnImage({
   const sourceHeight = metadata.height || 1200;
   const width = Math.min(sourceWidth, 1200);
   const height = Math.round(sourceHeight * (width / sourceWidth));
+  const normalizedImage = image.resize({ width, withoutEnlargement: true });
 
-  const measuredFaceWidthPx = getMeasuredFaceWidthPx({
+  const guideFaceWidthPx = getGuideFaceWidthPx({
     imageWidth: width,
     faceWidthPixelRatio
   });
-  const mmScaledFrameWidth = getMmScaledFrameWidth({
-    measuredFaceWidthPx,
-    faceWidthMm,
-    frameWidthMm: product.frameWidthMm
-  });
-  const frameWidthRatio = clamp(Number(frameWidthPercent) || 58, 35, 85) / 100;
-  const measuredEyeLinePx = height * 0.45;
+  const detectedFace = await detectFaceSkinBox(normalizedImage.clone(), { imageWidth: width });
+  const measuredFaceWidthPx = detectedFace
+    ? clamp(detectedFace.width, width * 0.35, width * 0.9)
+    : guideFaceWidthPx;
+  const measuredEyeLinePx = height * DEFAULT_EYE_LINE_RATIO;
   const frameTopRatio = clamp(Number(frameTopPercent) || 39, 18, 62) / 100;
   const frameOffsetXRatio = clamp(Number(frameOffsetXPercent) || 0, -20, 20) / 100;
-  const frameWidth = mmScaledFrameWidth || Math.round(width * frameWidthRatio);
-  const frameHeight = Math.round(frameWidth * 0.28);
-  const left = Math.round((width - frameWidth) / 2 + width * frameOffsetXRatio);
-  const mmScaledTop = mmScaledFrameWidth
-    ? Math.round(measuredEyeLinePx - frameHeight * 0.48 + height * ((frameTopRatio - 0.39) * 0.5))
-    : Math.round(height * frameTopRatio);
-  const top = clamp(mmScaledTop, 0, Math.max(0, height - frameHeight));
-  const frameInput = product.tryOnAssetUrl?.startsWith("/static/tryon-assets/")
-    ? await buildProductFrameInput({
+  const frameWidth = getPixelScaledFrameWidth({
+    imageWidth: width,
+    measuredFaceWidthPx
+  });
+  const preferredFrameHeight = Math.round(frameWidth * 0.28);
+  const frameAsset = product.tryOnAssetUrl?.startsWith("/static/tryon-assets/")
+    ? await buildProductFrameAsset({
       product,
       publicDir: path.resolve(outputDir, ".."),
-      frameWidth,
-      frameHeight
+      frameWidth
     })
-    : Buffer.from(buildFrameSvg({
+    : {
+      input: Buffer.from(buildFrameSvg({
+        width: frameWidth,
+        height: preferredFrameHeight,
+        color: product.color,
+        renderMode,
+        headYawDeg
+      })),
       width: frameWidth,
-      height: frameHeight,
-      color: product.color,
-      renderMode,
-      headYawDeg
-    }));
+      height: preferredFrameHeight
+    };
+  const frameHeight = frameAsset.height;
+  const left = Math.round((width - frameAsset.width) / 2 + width * frameOffsetXRatio);
+  const verticalAdjustment = height * ((frameTopRatio - 0.39) * 0.5);
+  const frameTop = Math.round(measuredEyeLinePx - frameHeight * 0.48 + verticalAdjustment);
+  const top = clamp(frameTop, 0, Math.max(0, height - frameHeight));
 
   const fileName = `tryon-${Date.now()}-${Math.round(Math.random() * 10000)}.png`;
   const outputPath = path.join(outputDir, fileName);
 
-  await image
-    .resize({ width, withoutEnlargement: true })
+  await normalizedImage
     .composite([
       {
-        input: frameInput,
+        input: frameAsset.input,
         left,
         top
       }
@@ -75,19 +83,36 @@ export async function composeTryOnImage({
 
   return {
     outputPath,
-    publicPath: `/static/generated/${fileName}`
+    publicPath: `/static/generated/${fileName}`,
+    render: {
+      scaleMode: "guide-frame-pixel",
+      faceWidthPixelRatio: measuredFaceWidthPx / width,
+      detectedFaceWidthPixelRatio: detectedFace ? detectedFace.width / width : null,
+      facePixelSource: detectedFace ? "skin-detection" : "guide-frame",
+      frameToFaceRatio: TRY_ON_FRAME_TO_FACE_RATIO,
+      frameWidthPx: frameAsset.width,
+      frameHeightPx: frameHeight,
+      leftPx: left,
+      topPx: top,
+      eyeLinePx: Math.round(measuredEyeLinePx)
+    }
   };
 }
 
-async function buildProductFrameInput({ product, publicDir, frameWidth, frameHeight }) {
+async function buildProductFrameAsset({ product, publicDir, frameWidth }) {
   if (!product.tryOnAssetUrl?.startsWith("/static/tryon-assets/")) {
-    return Buffer.from(buildFrameSvg({
+    const frameHeight = Math.round(frameWidth * 0.28);
+    return {
+      input: Buffer.from(buildFrameSvg({
       width: frameWidth,
       height: frameHeight,
       color: product.color,
       renderMode: "3d",
       headYawDeg: 0
-    }));
+      })),
+      width: frameWidth,
+      height: frameHeight
+    };
   }
 
   const relativePath = product.tryOnAssetUrl.replace("/static/", "");
@@ -96,39 +121,115 @@ async function buildProductFrameInput({ product, publicDir, frameWidth, frameHei
     throw new Error("试戴素材路径无效");
   }
 
-  return sharp(assetPath)
-    .resize({
-      width: frameWidth,
-      height: frameHeight,
-      fit: "contain",
-      background: { r: 0, g: 0, b: 0, alpha: 0 }
-    })
+  const metadata = await sharp(assetPath).metadata();
+  const assetWidth = metadata.width || frameWidth;
+  const assetHeight = metadata.height || Math.round(frameWidth * 0.28);
+  const frameHeight = Math.round(frameWidth * (assetHeight / assetWidth));
+  const input = await sharp(assetPath)
+    .resize({ width: frameWidth, fit: "inside", withoutEnlargement: false })
     .png()
     .toBuffer();
+  return {
+    input,
+    width: frameWidth,
+    height: frameHeight
+  };
 }
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function getMeasuredFaceWidthPx({ imageWidth, faceWidthPixelRatio }) {
+function getGuideFaceWidthPx({ imageWidth, faceWidthPixelRatio }) {
   const ratio = Number(faceWidthPixelRatio);
   if (!Number.isFinite(ratio) || ratio <= 0) {
-    return null;
+    return imageWidth * DEFAULT_FACE_WIDTH_PIXEL_RATIO;
   }
 
   return imageWidth * clamp(ratio, 0.35, 0.9);
 }
 
-function getMmScaledFrameWidth({ measuredFaceWidthPx, faceWidthMm, frameWidthMm }) {
-  const faceMm = Number(faceWidthMm);
-  const frameMm = Number(frameWidthMm);
+function getPixelScaledFrameWidth({ imageWidth, measuredFaceWidthPx }) {
+  const fallbackWidth = imageWidth * DEFAULT_FACE_WIDTH_PIXEL_RATIO * TRY_ON_FRAME_TO_FACE_RATIO;
+  const frameWidth = (measuredFaceWidthPx || fallbackWidth) * TRY_ON_FRAME_TO_FACE_RATIO;
+  return Math.round(clamp(frameWidth, imageWidth * 0.35, imageWidth * 0.78));
+}
 
-  if (!measuredFaceWidthPx || !Number.isFinite(faceMm) || !Number.isFinite(frameMm) || faceMm <= 0 || frameMm <= 0) {
+async function detectFaceSkinBox(image, { imageWidth }) {
+  const sampleWidth = 240;
+  const { data, info } = await image
+    .resize({ width: sampleWidth, withoutEnlargement: true })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const box = getSkinBox(data, info);
+  if (!box) {
     return null;
   }
 
-  return Math.round(clamp(measuredFaceWidthPx * (frameMm / faceMm), measuredFaceWidthPx * 0.75, measuredFaceWidthPx * 1.35));
+  const imageScale = imageWidth / info.width;
+  return {
+    left: box.left * imageScale,
+    top: box.top * imageScale,
+    width: box.width * imageScale,
+    height: box.height * imageScale
+  };
+}
+
+function getSkinBox(data, info) {
+  const minY = Math.round(info.height * 0.12);
+  const maxY = Math.round(info.height * 0.88);
+  let left = info.width;
+  let right = -1;
+  let top = info.height;
+  let bottom = -1;
+  let count = 0;
+
+  for (let y = minY; y < maxY; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const index = (y * info.width + x) * info.channels;
+      if (!isSkinPixel(data[index], data[index + 1], data[index + 2])) {
+        continue;
+      }
+
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+      top = Math.min(top, y);
+      bottom = Math.max(bottom, y);
+      count += 1;
+    }
+  }
+
+  if (right < left || bottom < top) {
+    return null;
+  }
+
+  const width = right - left + 1;
+  const height = bottom - top + 1;
+  const area = width * height;
+  const fillRatio = count / area;
+  const isPlausibleFace = width >= info.width * 0.38
+    && width <= info.width * 0.92
+    && height >= info.height * 0.28
+    && fillRatio >= 0.28;
+
+  if (!isPlausibleFace) {
+    return null;
+  }
+
+  return { left, top, width, height };
+}
+
+function isSkinPixel(red, green, blue) {
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  return red > 95
+    && green > 45
+    && blue > 30
+    && red > blue + 15
+    && red >= green - 10
+    && green >= blue - 5
+    && max - min > 15;
 }
 
 function buildFrameSvg({ width, height, color, renderMode, headYawDeg }) {

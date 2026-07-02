@@ -5,18 +5,17 @@ Page({
   data: {
     product: null,
     photoPath: "",
-    faceWidthMm: 145,
+    faceWidthMm: "",
     faceWidthEdited: false,
-    pupilDistanceMm: "",
     cameraOpen: false,
     cameraReady: false,
-    measurementMode: "manual",
-    measurementText: "手动输入脸宽",
+    measurementMode: "guide-frame",
+    measurementText: "在线试戴按取景框内脸宽像素生成；脸宽 mm 不会默认写成 145。",
     renderMode: "3d",
     headYawDeg: 0,
     headYawText: "正面",
     frameTopPercent: 39,
-    faceWidthPixelRatio: 0.62,
+    faceWidthPixelRatio: 0.56,
     frameOffsetXPercent: 0,
     uploading: false,
     result: null
@@ -97,12 +96,13 @@ Page({
     camera.takePhoto({
       quality: "high",
       success: (res) => {
-        const faceWidthMm = Number(this.data.faceWidthMm || 145);
         this.setData({
           photoPath: res.tempImagePath,
           cameraOpen: false,
           measurementMode: "guide-frame",
-          measurementText: `框内拍摄估算脸宽 ${faceWidthMm}mm`,
+          measurementText: this.data.faceWidthEdited
+            ? `框内拍照 + 手动脸宽 ${this.data.faceWidthMm}mm`
+            : "框内拍照已获得脸宽像素比例，尺寸建议仍需手动校准 mm。",
           result: null
         }, () => {
           this.submitTryOn();
@@ -118,15 +118,12 @@ Page({
   },
 
   onFaceWidthInput(event) {
+    const value = event.detail.value;
     this.setData({
-      faceWidthMm: event.detail.value,
-      faceWidthEdited: true,
-      measurementText: "已手动调整脸宽"
+      faceWidthMm: value,
+      faceWidthEdited: Boolean(value),
+      measurementText: value ? "已手动校准脸宽" : "在线试戴按取景框内脸宽像素生成；脸宽 mm 不会默认写成 145。"
     });
-  },
-
-  onPdInput(event) {
-    this.setData({ pupilDistanceMm: event.detail.value });
   },
 
   onHeadYawChange(event) {
@@ -160,7 +157,7 @@ Page({
   resetFrameAdjust() {
     this.setData({
       frameTopPercent: 39,
-      faceWidthPixelRatio: 0.62,
+      faceWidthPixelRatio: 0.56,
       frameOffsetXPercent: 0
     });
   },
@@ -179,7 +176,7 @@ Page({
 
   async submitTryOn() {
     if (!this.data.photoPath) {
-      wx.showToast({ title: "请先上传正脸照片", icon: "none" });
+      wx.showToast({ title: "请先打开摄像机拍照", icon: "none" });
       return;
     }
 
@@ -189,15 +186,13 @@ Page({
       const result = await uploadTryOn({
         filePath: this.data.photoPath,
         productId: this.data.product.id,
-        faceWidthMm: this.data.faceWidthMm || 145,
-        pupilDistanceMm: this.data.pupilDistanceMm,
+        faceWidthMm: this.data.faceWidthEdited ? this.data.faceWidthMm : "",
         measurementMode: this.data.measurementMode,
         faceWidthEdited: this.data.faceWidthEdited,
         renderMode: this.data.renderMode,
         headYawDeg: this.data.headYawDeg,
         faceWidthPixelRatio: this.data.faceWidthPixelRatio,
         frameTopPercent: this.data.frameTopPercent,
-        frameWidthPercent: 58,
         frameOffsetXPercent: this.data.frameOffsetXPercent
       });
 
