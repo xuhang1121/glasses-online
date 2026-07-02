@@ -27,19 +27,58 @@ Component({
     arReady: false,
     faceVisible: false,
     faceVisibleClass: "",
-    statusText: "正在启动 3D 试戴"
+    statusText: "正在启动 3D 试戴",
+    startupFailed: false
+  },
+
+  lifetimes: {
+    attached() {
+      this.startupTimer = setTimeout(() => {
+        if (this.data.arReady) {
+          return;
+        }
+
+        this.setData({
+          startupFailed: true,
+          statusText: "3D 启动失败，请用真机并开启摄像头权限"
+        });
+      }, 8000);
+    },
+
+    detached() {
+      if (this.startupTimer) {
+        clearTimeout(this.startupTimer);
+      }
+    }
   },
 
   methods: {
     handleReady({ detail }) {
       this.scene = detail.value;
       this.scene.event.add("tick", this.handleTick.bind(this));
+      this.setData({ statusText: "XR 场景已启动，正在打开摄像头" });
     },
 
     handleARReady() {
+      if (this.startupTimer) {
+        clearTimeout(this.startupTimer);
+      }
+
       this.setData({
         arReady: true,
+        startupFailed: false,
         statusText: "请把脸移入画面"
+      });
+    },
+
+    handleXRError(error) {
+      if (this.startupTimer) {
+        clearTimeout(this.startupTimer);
+      }
+
+      this.setData({
+        startupFailed: true,
+        statusText: error.detail?.message || "3D 启动失败，请检查设备是否支持 XR"
       });
     },
 

@@ -22,42 +22,13 @@ export async function generateTryOnAssetFromCover({ coverPath, publicDir, produc
     .raw()
     .toBuffer({ resolveWithObject: true })
     .then(({ data, info }) => {
-      for (let index = 0; index < data.length; index += info.channels) {
-        const red = data[index];
-        const green = data[index + 1];
-        const blue = data[index + 2];
-        const brightness = (red + green + blue) / 3;
-        const colorSpread = Math.max(red, green, blue) - Math.min(red, green, blue);
-        const isWhiteBackground = brightness > 226 && colorSpread < 28;
+      const stroke = sampleFrameColor(data, info);
 
-        if (isWhiteBackground) {
-          data[index + 3] = 0;
-        } else if (brightness > 205 && colorSpread < 22) {
-          data[index + 3] = 90;
-        } else {
-          data[index + 3] = 255;
-        }
-      }
-
-      softenTinyArtifacts(data, info);
-      const frontFrameCrop = clampCrop(getFrontFrameCrop(data, info), info);
-      const cropped = cropRawImage(data, info, frontFrameCrop);
-      const trimmed = trimRawImage(cropped.data, cropped.info);
-      const padded = padRawImage(trimmed.data, trimmed.info, 24);
-      clearLensInteriors(padded.data, padded.info, {
-        left: 0,
-        top: 0,
-        width: padded.info.width,
-        height: padded.info.height
-      });
-
-      return sharp(padded.data, {
-        raw: {
-          width: padded.info.width,
-          height: padded.info.height,
-          channels: info.channels
-        }
-      })
+      return sharp(Buffer.from(buildCleanFrameSvg({
+        width: 900,
+        height: 360,
+        stroke
+      })))
         .png()
         .toFile(outputPath);
     });
@@ -77,13 +48,78 @@ function getFrameCrop(width, height) {
   };
 }
 
+function sampleFrameColor(data, info) {
+  let redTotal = 0;
+  let greenTotal = 0;
+  let blueTotal = 0;
+  let count = 0;
+
+  for (let index = 0; index < data.length; index += info.channels) {
+    const red = data[index];
+    const green = data[index + 1];
+    const blue = data[index + 2];
+    const brightness = (red + green + blue) / 3;
+    const spread = Math.max(red, green, blue) - Math.min(red, green, blue);
+    const isFrameLike = brightness > 45 && brightness < 205 && spread < 90;
+
+    if (!isFrameLike) {
+      continue;
+    }
+
+    redTotal += red;
+    greenTotal += green;
+    blueTotal += blue;
+    count += 1;
+  }
+
+  if (count < 20) {
+    return "#5f5a52";
+  }
+
+  return `rgb(${Math.round(redTotal / count)}, ${Math.round(greenTotal / count)}, ${Math.round(blueTotal / count)})`;
+}
+
+function buildCleanFrameSvg({ width, height, stroke }) {
+  const strokeWidth = Math.round(width * 0.018);
+  const lensY = Math.round(height * 0.12);
+  const lensWidth = Math.round(width * 0.32);
+  const lensHeight = Math.round(height * 0.72);
+  const leftX = Math.round(width * 0.13);
+  const rightX = Math.round(width * 0.55);
+  const bridgeLeft = leftX + lensWidth;
+  const bridgeRight = rightX;
+  const templeLength = Math.round(width * 0.045);
+  const radius = Math.round(height * 0.16);
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+          <feDropShadow dx="0" dy="${height * 0.015}" stdDeviation="${width * 0.004}" flood-color="#111827" flood-opacity="0.18"/>
+        </filter>
+      </defs>
+      <g filter="url(#shadow)" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="${leftX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}" rx="${radius}"/>
+        <rect x="${rightX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}" rx="${radius}"/>
+        <path d="M ${bridgeLeft} ${lensY + lensHeight * 0.42} C ${bridgeLeft + width * 0.035} ${lensY + lensHeight * 0.2}, ${bridgeRight - width * 0.035} ${lensY + lensHeight * 0.2}, ${bridgeRight} ${lensY + lensHeight * 0.42}"/>
+        <path d="M ${leftX} ${lensY + lensHeight * 0.22} C ${leftX - templeLength * 0.45} ${lensY + lensHeight * 0.18}, ${leftX - templeLength} ${lensY + lensHeight * 0.26}, ${leftX - templeLength} ${lensY + lensHeight * 0.36}"/>
+        <path d="M ${rightX + lensWidth} ${lensY + lensHeight * 0.22} C ${rightX + lensWidth + templeLength * 0.45} ${lensY + lensHeight * 0.18}, ${rightX + lensWidth + templeLength} ${lensY + lensHeight * 0.26}, ${rightX + lensWidth + templeLength} ${lensY + lensHeight * 0.36}"/>
+      </g>
+      <g fill="none" stroke="rgba(255,255,255,0.38)" stroke-width="${Math.max(2, Math.round(strokeWidth * 0.22))}" stroke-linecap="round">
+        <path d="M ${leftX + lensWidth * 0.16} ${lensY + lensHeight * 0.16} L ${leftX + lensWidth * 0.44} ${lensY + lensHeight * 0.07}"/>
+        <path d="M ${rightX + lensWidth * 0.16} ${lensY + lensHeight * 0.16} L ${rightX + lensWidth * 0.44} ${lensY + lensHeight * 0.07}"/>
+      </g>
+    </svg>
+  `;
+}
+
 function getFrontFrameCrop(data, info) {
   const visibleBox = getAlphaBox(data, info);
   if (!visibleBox) {
     return { left: 0, top: 0, width: info.width, height: info.height };
   }
 
-  const maxFrontAspect = 2.55;
+  const maxFrontAspect = 2.05;
   const maxFrontWidth = Math.round(visibleBox.height * maxFrontAspect);
   if (visibleBox.width <= maxFrontWidth) {
     return visibleBox;
@@ -396,16 +432,16 @@ function removeLensTextArtifacts(data, info, frontFrameCrop) {
 function getLensClearAreas(crop) {
   return [
     {
-      left: crop.left + Math.round(crop.width * 0.13),
-      top: crop.top + Math.round(crop.height * 0.3),
-      width: Math.round(crop.width * 0.27),
-      height: Math.round(crop.height * 0.43)
+      left: crop.left + Math.round(crop.width * 0.08),
+      top: crop.top + Math.round(crop.height * 0.22),
+      width: Math.round(crop.width * 0.35),
+      height: Math.round(crop.height * 0.64)
     },
     {
-      left: crop.left + Math.round(crop.width * 0.52),
-      top: crop.top + Math.round(crop.height * 0.3),
-      width: Math.round(crop.width * 0.27),
-      height: Math.round(crop.height * 0.43)
+      left: crop.left + Math.round(crop.width * 0.49),
+      top: crop.top + Math.round(crop.height * 0.22),
+      width: Math.round(crop.width * 0.36),
+      height: Math.round(crop.height * 0.64)
     }
   ];
 }
@@ -426,16 +462,16 @@ function getLensInteriorArea(crop) {
 function getLensTextAreas(crop) {
   return [
     {
-      left: crop.left + Math.round(crop.width * 0.06),
-      top: crop.top + Math.round(crop.height * 0.45),
-      width: Math.round(crop.width * 0.35),
-      height: Math.round(crop.height * 0.42)
+      left: crop.left + Math.round(crop.width * 0.05),
+      top: crop.top + Math.round(crop.height * 0.28),
+      width: Math.round(crop.width * 0.42),
+      height: Math.round(crop.height * 0.62)
     },
     {
-      left: crop.left + Math.round(crop.width * 0.44),
-      top: crop.top + Math.round(crop.height * 0.45),
-      width: Math.round(crop.width * 0.36),
-      height: Math.round(crop.height * 0.42)
+      left: crop.left + Math.round(crop.width * 0.46),
+      top: crop.top + Math.round(crop.height * 0.28),
+      width: Math.round(crop.width * 0.42),
+      height: Math.round(crop.height * 0.62)
     }
   ];
 }

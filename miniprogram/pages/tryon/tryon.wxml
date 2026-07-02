@@ -11,11 +11,7 @@
     当前商品还没有上传“在线试戴透明镜框图”，生成图会使用占位素材。请在后台为该商品上传透明 PNG/SVG 镜框图。
   </view>
 
-  <view class="section-title">选择镜框 支持线上试戴</view>
-  <view class="capture-actions">
-    <button class="primary-button" bindtap="openCamera">打开摄像机</button>
-    <view class="measure-note">拍照前请摘掉原眼镜，脸两侧对齐绿色竖线，眼睛对齐虚线。</view>
-  </view>
+  <view class="section-title">在线试戴</view>
 
   <view wx:if="{{cameraOpen}}" class="camera-panel">
     <camera
@@ -42,89 +38,19 @@
     </view>
   </view>
 
-  <view wx:else class="upload-box" bindtap="openCamera">
-    <image wx:if="{{photoPath}}" class="photo-preview" src="{{photoPath}}" mode="aspectFit" />
-    <view wx:else class="upload-placeholder">
-      <view class="upload-title">打开摄像机</view>
-      <view class="muted">脸放进框内后拍照生成在线试戴效果</view>
+  <view wx:else class="capture-panel">
+    <view class="capture-title">选择试戴方式</view>
+    <view class="capture-note">拍照试戴会生成效果图；3D 实时试戴会直接打开摄像头渲染模型。</view>
+    <view class="mode-actions">
+      <button class="primary-button" bindtap="openCamera">拍照试戴</button>
+      <button class="ghost-button" bindtap="openArTryOn">3D 实时试戴</button>
+    </view>
+    <view class="capture-note small-note">拍照前请摘掉原眼镜，脸两侧对齐绿色竖线，眼睛对齐虚线。</view>
+    <view wx:if="{{photoPath}}" class="last-photo">
+      <image src="{{photoPath}}" mode="aspectFill" />
+      <view class="muted">已拍照，可重新打开摄像机拍一次。</view>
     </view>
   </view>
-
-  <view class="form-panel">
-    <view class="field">
-      <view class="label">手动校准脸宽 mm，可选</view>
-      <input type="number" value="{{faceWidthMm}}" bindinput="onFaceWidthInput" placeholder="不填则只按像素试戴" />
-    </view>
-  </view>
-
-  <view class="measure-note">{{measurementText}}</view>
-
-  <view class="three-d-panel">
-    <view class="three-d-head">
-      <view>
-        <view class="three-d-title">3D 试戴角度</view>
-        <view class="muted">根据照片头部朝向调整镜架透视</view>
-      </view>
-      <view class="yaw-pill">{{headYawText}}</view>
-    </view>
-    <slider
-      min="-25"
-      max="25"
-      step="1"
-      value="{{headYawDeg}}"
-      activeColor="#111827"
-      backgroundColor="#d0d5dd"
-      bindchange="onHeadYawChange"
-      bindchanging="onHeadYawChange"
-    />
-    <view class="yaw-buttons">
-      <button class="ghost-button mini" data-value="-18" bindtap="setHeadYaw">左脸</button>
-      <button class="ghost-button mini" data-value="0" bindtap="setHeadYaw">正面</button>
-      <button class="ghost-button mini" data-value="18" bindtap="setHeadYaw">右脸</button>
-    </view>
-  </view>
-
-  <view class="adjust-panel">
-    <view class="adjust-head">
-      <view>
-        <view class="three-d-title">镜架位置校准</view>
-        <view class="muted">拍照后可微调镜框位置再重新生成</view>
-      </view>
-      <button class="ghost-button mini reset-button" bindtap="resetFrameAdjust">重置</button>
-    </view>
-
-    <view class="adjust-row">
-      <view class="adjust-label">上下 {{frameTopPercent}}%</view>
-      <slider
-        min="18"
-        max="62"
-        step="1"
-        value="{{frameTopPercent}}"
-        activeColor="#111827"
-        backgroundColor="#d0d5dd"
-        bindchange="onFrameTopChange"
-        bindchanging="onFrameTopChange"
-      />
-    </view>
-
-    <view class="adjust-row">
-      <view class="adjust-label">左右 {{frameOffsetXPercent}}%</view>
-      <slider
-        min="-20"
-        max="20"
-        step="1"
-        value="{{frameOffsetXPercent}}"
-        activeColor="#111827"
-        backgroundColor="#d0d5dd"
-        bindchange="onFrameOffsetXChange"
-        bindchanging="onFrameOffsetXChange"
-      />
-    </view>
-  </view>
-
-  <button class="primary-button submit" loading="{{uploading}}" bindtap="submitTryOn">
-    生成在线试戴效果
-  </button>
 
   <view wx:if="{{result}}" class="result">
     <image class="result-image" src="{{result.imageUrl}}" mode="widthFix" />
@@ -134,25 +60,11 @@
       <view class="advice-data">
         镜架 {{result.fit.frameWidthMm}}mm · 脸宽 {{result.measurement.faceWidthText}}
       </view>
-      <view class="advice-data">
-        位置 {{result.render.frameTopPercent}}% · 左右 {{result.render.frameOffsetXPercent}}%
-      </view>
-      <view class="advice-data">
-        像素比例 {{result.render.faceWidthPixelRatio}} · {{result.render.facePixelSource}}
-      </view>
     </view>
-    <view class="measurement-card">
-      <view class="measurement-row">
-        <text class="measurement-label">测量方式</text>
-        <text class="measurement-value">{{result.measurement.sourceText}}</text>
-      </view>
-      <view class="measurement-row">
-        <text class="measurement-label">可信度</text>
-        <text class="measurement-value">{{result.measurement.confidenceText}}</text>
-      </view>
-      <view class="measurement-note">{{result.measurement.note}}</view>
+    <view class="result-actions">
+      <button class="ghost-button" bindtap="openCamera">重新拍照</button>
+      <button class="ghost-button" bindtap="addCart">加入购物车</button>
+      <button class="primary-button" bindtap="openArTryOn">3D 试戴</button>
     </view>
-    <button class="ghost-button" bindtap="addCart">加入购物车</button>
-    <button class="primary-button" bindtap="openArTryOn">进入 3D 试戴</button>
   </view>
 </view>

@@ -4,6 +4,7 @@
     ar-system="modes:Face;camera:Front;pose3d:true;"
     bind:ready="handleReady"
     bind:ar-ready="handleARReady"
+    bind:error="handleXRError"
   >
     <xr-assets bind:progress="handleAssetsProgress" bind:loaded="handleAssetsLoaded">
       <xr-asset-load
@@ -19,6 +20,17 @@
     </xr-assets>
 
     <xr-env env-data="xr-frame-team-workspace-day" />
+
+    <xr-node>
+      <xr-camera
+        id="camera"
+        node-id="camera"
+        clear-color="0.925 0.925 0.925 1"
+        background="ar"
+        is-ar-camera
+        near="0.01"
+      />
+    </xr-node>
 
     <xr-node wx:if="{{arReady}}">
       <xr-ar-tracker id="face-tracker" mode="Face">
@@ -43,15 +55,6 @@
           never-cull
         />
       </xr-ar-tracker>
-
-      <xr-camera
-        id="camera"
-        node-id="camera"
-        clear-color="0.925 0.925 0.925 1"
-        background="ar"
-        is-ar-camera
-        near="0.01"
-      />
     </xr-node>
 
     <xr-node node-id="lights">
@@ -64,7 +67,12 @@
     {{statusText}}
   </view>
 
-  <view class="face-guide {{faceVisibleClass}}">
+  <view wx:if="{{startupFailed}}" class="ar-error">
+    <view>当前 3D 试戴没有启动成功</view>
+    <view class="error-copy">请用真机调试，确认微信版本支持 XR-Face，并允许摄像头权限。</view>
+  </view>
+
+  <view wx:if="{{!startupFailed}}" class="face-guide {{faceVisibleClass}}">
     <view class="guide-line left"></view>
     <view class="guide-line right"></view>
     <view class="eye-line"></view>

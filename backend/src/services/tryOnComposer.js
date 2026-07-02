@@ -44,7 +44,8 @@ export async function composeTryOnImage({
     measuredFaceWidthPx
   });
   const preferredFrameHeight = Math.round(frameWidth * 0.28);
-  const frameAsset = product.tryOnAssetUrl?.startsWith("/static/tryon-assets/")
+  const hasFrameAsset = product.tryOnAssetUrl?.startsWith("/static/tryon-assets/");
+  const frameAsset = hasFrameAsset
     ? await buildProductFrameAsset({
       product,
       publicDir: path.resolve(outputDir, ".."),

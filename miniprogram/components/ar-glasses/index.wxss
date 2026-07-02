@@ -12,7 +12,7 @@
 .ar-status {
   position: fixed;
   left: 50%;
-  top: calc(32rpx + env(safe-area-inset-top));
+  top: calc(88rpx + env(safe-area-inset-top));
   transform: translateX(-50%);
   min-width: 260rpx;
   height: 56rpx;
@@ -29,6 +29,28 @@
 
 .ar-status.active {
   background: rgba(8, 116, 67, 0.82);
+}
+
+.ar-error {
+  position: fixed;
+  left: 48rpx;
+  right: 48rpx;
+  top: calc(180rpx + env(safe-area-inset-top));
+  padding: 28rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.94);
+  color: #111827;
+  font-size: 30rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.error-copy {
+  margin-top: 12rpx;
+  color: #667085;
+  font-size: 24rpx;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .face-guide {
